@@ -1,0 +1,14 @@
+Builds/
+*.exe
+*.obj
+*.pdb
+*.ilk
+*.recipe
+*.tlog
+
+SoundFonts/
+*.sf2
+
+*.dll
+
+.vs/
