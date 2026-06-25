@@ -4,7 +4,7 @@
 
 int main()
 {
-    std::cout << "LiveStage AI 2.0 Engine M2 - Modular Arranger Proof\n";
+    std::cout << "LiveStage AI 2.0 Engine M3 - Arranger State Machine\n";
 
     SoundFontEngine soundFont;
     if (!soundFont.initialize())
@@ -15,11 +15,11 @@ int main()
     }
 
     ArrangerEngine arranger(soundFont);
-    arranger.playProofDemo();
+    arranger.playM3ProofDemo();
 
     soundFont.shutdown();
 
-    std::cout << "M2 MODULAR ENGINE PROOF COMPLETE\n";
+    std::cout << "M3 ARRANGER STATE MACHINE COMPLETE\n";
     system("pause");
     return 0;
 }
