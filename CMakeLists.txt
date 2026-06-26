@@ -8,6 +8,7 @@ add_executable(ArrangerCoreProof
     App/ArrangerCoreProof.cpp
     Engine/SoundFontEngine.cpp
     Engine/ArrangerEngine.cpp
+    Engine/TimingEngine.cpp
 )
 
 target_include_directories(ArrangerCoreProof PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
