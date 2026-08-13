@@ -1,0 +1,7 @@
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/tools/CMakeFiles/INSTALL.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/tools/CMakeFiles/ALL_BUILD.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/tools/CMakeFiles/ZERO_CHECK.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/tools/modules/CMakeFiles/INSTALL.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/tools/extras/Build/CMakeFiles/INSTALL.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/tools/extras/Build/juceaide/CMakeFiles/juceaide.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/tools/extras/Build/juceaide/CMakeFiles/INSTALL.dir

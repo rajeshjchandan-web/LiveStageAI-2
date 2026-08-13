@@ -1,0 +1,11 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/cmake_install.cmake",
+		"C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/cmake_install.cmake",
+		"C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/modules/cmake_install.cmake",
+		"C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/extras/Build/cmake_install.cmake",
+		"C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/extras/Build/juceaide/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

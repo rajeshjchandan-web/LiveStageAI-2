@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\rajes\Documents\GitHub\LiveStageAI-2\App\ArrangerCoreProof.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rajes\Documents\GitHub\LiveStageAI-2\Engine\SoundFontEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rajes\Documents\GitHub\LiveStageAI-2\Engine\ArrangerEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\rajes\Documents\GitHub\LiveStageAI-2\Engine\TimingEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\rajes\Documents\GitHub\LiveStageAI-2\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{9FEE07F0-C759-3C7C-BBD3-F8766F7008C5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\rajes\Documents\GitHub\LiveStageAI-2\BuildsNative\CMakeFiles\0719fe9ae3acbb477f9bfc15a39c79f4\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{91288294-874F-30DF-ACCA-25178CBC1A84}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

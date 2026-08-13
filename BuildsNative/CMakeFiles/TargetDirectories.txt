@@ -1,0 +1,11 @@
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/CMakeFiles/ArrangerCoreProof.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/CMakeFiles/LiveStageAI.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/CMakeFiles/LiveStageAI_rc_lib.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/CMakeFiles/INSTALL.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/CMakeFiles/ALL_BUILD.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/CMakeFiles/ZERO_CHECK.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/CMakeFiles/INSTALL.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/CMakeFiles/ALL_BUILD.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/modules/CMakeFiles/INSTALL.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/extras/Build/CMakeFiles/INSTALL.dir
+C:/Users/rajes/Documents/GitHub/LiveStageAI-2/BuildsNative/JUCE/extras/Build/juceaide/CMakeFiles/INSTALL.dir
