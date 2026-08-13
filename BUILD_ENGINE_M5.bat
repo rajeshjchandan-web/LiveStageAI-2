@@ -1,0 +1,32 @@
+@echo off
+cd /d %~dp0
+
+echo =====================================
+echo LiveStage AI 2.0 - Build Engine M5
+echo =====================================
+
+rmdir /s /q Builds 2>nul
+
+cmake -S . -B Builds -G "Visual Studio 18 2026" -A x64
+if errorlevel 1 goto :error
+
+cmake --build Builds --config Release --target ArrangerCoreProof
+if errorlevel 1 goto :error
+
+echo Copying runtime DLLs...
+copy /Y RuntimeDLLs\*.dll Builds\Release\ >nul
+
+if not exist Builds\Release\SoundFonts mkdir Builds\Release\SoundFonts
+copy /Y SoundFonts\FluidR3_GM.sf2 Builds\Release\SoundFonts\FluidR3_GM.sf2 >nul
+
+cd /d Builds\Release
+ArrangerCoreProof.exe
+goto :end
+
+:error
+echo BUILD FAILED
+pause
+exit /b 1
+
+:end
+pause

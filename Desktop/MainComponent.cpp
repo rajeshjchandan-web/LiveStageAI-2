@@ -2,16 +2,27 @@
 
 namespace
 {
-const auto bg = juce::Colour::fromRGB(10,15,25);
-const auto panel = juce::Colour::fromRGB(20,27,41);
-const auto stroke = juce::Colour::fromRGB(50,64,88);
-const auto accent = juce::Colour::fromRGB(61,194,255);
-const auto success = juce::Colour::fromRGB(59,214,126);
-const auto text = juce::Colour::fromRGB(236,242,250);
-const auto muted = juce::Colour::fromRGB(147,160,182);
+const auto bg       = juce::Colour::fromRGB(8, 13, 22);
+const auto panel    = juce::Colour::fromRGB(18, 25, 38);
+const auto panel2   = juce::Colour::fromRGB(24, 33, 49);
+const auto stroke   = juce::Colour::fromRGB(52, 67, 91);
+const auto accent   = juce::Colour::fromRGB(61, 194, 255);
+const auto green    = juce::Colour::fromRGB(59, 214, 126);
+const auto amber    = juce::Colour::fromRGB(255, 187, 78);
+const auto red      = juce::Colour::fromRGB(255, 92, 104);
+const auto text     = juce::Colour::fromRGB(239, 244, 251);
+const auto muted    = juce::Colour::fromRGB(151, 164, 184);
+
+void styleReadout(juce::Label& label, float size)
+{
+    label.setColour(juce::Label::textColourId, text);
+    label.setFont(juce::Font(juce::FontOptions(size, juce::Font::bold)));
+    label.setJustificationType(juce::Justification::centred);
+}
 }
 
 MainComponent::MainComponent()
+    : arranger(soundFont)
 {
     setOpaque(true);
 
@@ -20,113 +31,319 @@ MainComponent::MainComponent()
     titleLabel.setColour(juce::Label::textColourId, text);
     addAndMakeVisible(titleLabel);
 
-    statusLabel.setColour(juce::Label::textColourId, muted);
-    addAndMakeVisible(statusLabel);
+    engineStatusLabel.setColour(juce::Label::textColourId, muted);
+    engineStatusLabel.setFont(juce::Font(juce::FontOptions(13.0f)));
+    addAndMakeVisible(engineStatusLabel);
 
-    audioTestButton.onClick = [this] { playAudioTest(); };
-    panicButton.onClick = [this] { stopAllAudio(); };
-    addAndMakeVisible(audioTestButton);
-    addAndMakeVisible(panicButton);
+    styleReadout(sectionValue, 24.0f);
+    styleReadout(chordValue, 30.0f);
+    styleReadout(barBeatValue, 22.0f);
+    styleReadout(tempoValue, 22.0f);
+
+    addAndMakeVisible(sectionValue);
+    addAndMakeVisible(chordValue);
+    addAndMakeVisible(barBeatValue);
+    addAndMakeVisible(tempoValue);
+
+    tempoSlider.setRange(40.0, 240.0, 1.0);
+    tempoSlider.setValue(120.0);
+    tempoSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    tempoSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 74, 28);
+    tempoSlider.setColour(juce::Slider::trackColourId, accent);
+    tempoSlider.setColour(juce::Slider::thumbColourId, text);
+    tempoSlider.onValueChange = [this]
+    {
+        arranger.setTempo(tempoSlider.getValue());
+        updateTransportTimer();
+        refreshReadouts();
+    };
+    addAndMakeVisible(tempoSlider);
+
+    const char* names[] = {"C","C#","D","Eb","E","F","F#","G","Ab","A","Bb","B"};
+    for (int i = 0; i < 12; ++i)
+        chordRootBox.addItem(names[i], i + 1);
+
+    chordRootBox.setSelectedId(1);
+    chordRootBox.onChange = [this]
+    {
+        const int root = 60 + (chordRootBox.getSelectedId() - 1);
+        arranger.setChord(root, minorToggle.getToggleState());
+        refreshReadouts();
+    };
+    addAndMakeVisible(chordRootBox);
+
+    minorToggle.onClick = [this]
+    {
+        const int root = 60 + (chordRootBox.getSelectedId() - 1);
+        arranger.setChord(root, minorToggle.getToggleState());
+        refreshReadouts();
+    };
+    addAndMakeVisible(minorToggle);
+
+    configureButton(syncStartButton, [this]
+    {
+        if (!engineReady) return;
+        arranger.syncStart();
+        updateTransportTimer();
+        refreshReadouts();
+    }, true);
+
+    configureButton(startButton, [this]
+    {
+        if (!engineReady) return;
+        arranger.startNow();
+        updateTransportTimer();
+        refreshReadouts();
+    }, true);
+
+    configureButton(stopButton, [this]
+    {
+        arranger.stop();
+        updateTransportTimer();
+        refreshReadouts();
+    });
+
+    configureButton(mainAButton, [this] { arranger.requestMainA(); refreshReadouts(); });
+    configureButton(mainBButton, [this] { arranger.requestMainB(); refreshReadouts(); });
+    configureButton(mainCButton, [this] { arranger.requestMainC(); refreshReadouts(); });
+    configureButton(fillBButton, [this] { arranger.requestFillB(); refreshReadouts(); }, true);
+    configureButton(fillCButton, [this] { arranger.requestFillC(); refreshReadouts(); }, true);
+    configureButton(endingButton, [this] { arranger.requestEndingA(); refreshReadouts(); });
+    configureButton(panicButton, [this] { stopEverything(); });
 
     initialiseAudioEngine();
+    refreshReadouts();
 }
 
 MainComponent::~MainComponent()
 {
-    stopAllAudio();
+    stopTimer();
+    arranger.stop();
     soundFont.shutdown();
+}
+
+void MainComponent::configureButton(juce::TextButton& button,
+                                    std::function<void()> callback,
+                                    bool isAccent)
+{
+    button.onClick = std::move(callback);
+    button.setColour(juce::TextButton::buttonColourId,
+                     isAccent ? accent.withAlpha(0.32f) : panel2);
+    button.setColour(juce::TextButton::buttonOnColourId, accent);
+    button.setColour(juce::TextButton::textColourOffId, text);
+    addAndMakeVisible(button);
 }
 
 void MainComponent::initialiseAudioEngine()
 {
     engineReady = soundFont.initialize();
-    statusLabel.setText(engineReady
-        ? "Native Windows shell ready • FluidSynth + FluidR3_GM.sf2 ready"
-        : "Native Windows shell ready • Audio engine not ready",
+
+    engineStatusLabel.setText(
+        engineReady
+            ? "AUDIO READY  •  FluidSynth + FluidR3_GM.sf2  •  Native realtime arranger S2"
+            : "AUDIO NOT READY  •  Check packaged runtime files",
         juce::dontSendNotification);
-    audioTestButton.setEnabled(engineReady);
+
+    for (auto* b : { &syncStartButton, &startButton, &mainAButton, &mainBButton,
+                     &mainCButton, &fillBButton, &fillCButton, &endingButton })
+        b->setEnabled(engineReady);
 }
 
-void MainComponent::playAudioTest()
+void MainComponent::updateTransportTimer()
 {
-    if (!engineReady) return;
-    stopAllAudio();
-    soundFont.programChange(0, 0);
-    soundFont.noteOn(0, 60, 104);
-    soundFont.noteOn(0, 64, 96);
-    soundFont.noteOn(0, 67, 96);
-    startTimer(850);
-}
+    if (!engineReady)
+    {
+        stopTimer();
+        return;
+    }
 
-void MainComponent::stopAllAudio()
-{
-    stopTimer();
-    if (engineReady) soundFont.allNotesOff();
+    if (arranger.isRunning())
+    {
+        const double sixteenthMs = 60000.0 / arranger.getTempo() / 4.0;
+        startTimer(juce::roundToInt(sixteenthMs));
+    }
+    else
+    {
+        stopTimer();
+    }
 }
 
 void MainComponent::timerCallback()
 {
-    stopAllAudio();
+    arranger.processSixteenth();
+    refreshReadouts();
+
+    if (!arranger.isRunning())
+        stopTimer();
+}
+
+void MainComponent::refreshReadouts()
+{
+    sectionValue.setText(juce::String(arranger.getSectionName()), juce::dontSendNotification);
+    chordValue.setText(juce::String(arranger.getChordName()), juce::dontSendNotification);
+
+    barBeatValue.setText(
+        "BAR " + juce::String(arranger.getBar()) +
+        "  •  BEAT " + juce::String(arranger.getBeat()),
+        juce::dontSendNotification);
+
+    tempoValue.setText(
+        juce::String((int) arranger.getTempo()) + " BPM",
+        juce::dontSendNotification);
+
+    repaint();
+}
+
+void MainComponent::stopEverything()
+{
+    arranger.stop();
+    if (engineReady) soundFont.allNotesOff();
+    stopTimer();
+    refreshReadouts();
 }
 
 void MainComponent::paint(juce::Graphics& g)
 {
     g.fillAll(bg);
 
-    auto area = getLocalBounds().reduced(28);
-    area.removeFromTop(90);
+    auto bounds = getLocalBounds();
 
-    auto status = area.removeFromTop(110).toFloat();
+    auto header = bounds.removeFromTop(92);
     g.setColour(panel);
-    g.fillRoundedRectangle(status, 14.0f);
+    g.fillRect(header);
     g.setColour(stroke);
-    g.drawRoundedRectangle(status, 14.0f, 1.0f);
+    g.drawLine(0.0f, 91.0f, (float) getWidth(), 91.0f, 1.0f);
 
-    g.setColour(engineReady ? success : accent);
-    g.fillEllipse(status.getX()+22.0f, status.getY()+24.0f, 12.0f, 12.0f);
+    auto area = bounds.reduced(28);
+
+    auto display = area.removeFromTop(155);
+    g.setColour(panel);
+    g.fillRoundedRectangle(display.toFloat(), 14.0f);
+    g.setColour(stroke);
+    g.drawRoundedRectangle(display.toFloat(), 14.0f, 1.0f);
+
+    auto displayInner = display.reduced(18);
+    const int col = displayInner.getWidth() / 4;
+
+    auto sectionBox = displayInner.removeFromLeft(col);
+    auto chordBox = displayInner.removeFromLeft(col);
+    auto barBox = displayInner.removeFromLeft(col);
+    auto tempoBox = displayInner;
+
+    auto drawCaption = [&g](juce::Rectangle<int> r, const juce::String& caption, juce::Colour c)
+    {
+        g.setColour(c);
+        g.setFont(juce::Font(juce::FontOptions(12.0f, juce::Font::bold)));
+        g.drawText(caption, r.removeFromTop(24), juce::Justification::centred);
+    };
+
+    drawCaption(sectionBox, "SECTION", accent);
+    drawCaption(chordBox, "CHORD", green);
+    drawCaption(barBox, "TRANSPORT", amber);
+    drawCaption(tempoBox, "TEMPO", accent);
+
+    area.removeFromTop(22);
+
+    auto performance = area.removeFromTop(220);
+    g.setColour(panel);
+    g.fillRoundedRectangle(performance.toFloat(), 14.0f);
+    g.setColour(stroke);
+    g.drawRoundedRectangle(performance.toFloat(), 14.0f, 1.0f);
 
     g.setColour(text);
-    g.setFont(juce::Font(juce::FontOptions(22.0f, juce::Font::bold)));
-    g.drawText("NATIVE WINDOWS APPLICATION", status.toNearestInt().reduced(52,18).removeFromTop(32),
+    g.setFont(juce::Font(juce::FontOptions(18.0f, juce::Font::bold)));
+    g.drawText("LIVE ARRANGER", performance.reduced(20, 14).removeFromTop(30),
+               juce::Justification::centredLeft);
+
+    area.removeFromTop(22);
+
+    g.setColour(panel2);
+    g.fillRoundedRectangle(area.toFloat(), 14.0f);
+    g.setColour(stroke);
+    g.drawRoundedRectangle(area.toFloat(), 14.0f, 1.0f);
+
+    g.setColour(text);
+    g.setFont(juce::Font(juce::FontOptions(17.0f, juce::Font::bold)));
+    g.drawText("S2 REALTIME ENGINE", area.reduced(20, 16).removeFromTop(28),
                juce::Justification::centredLeft);
 
     g.setColour(muted);
-    g.setFont(15.0f);
+    g.setFont(14.0f);
     g.drawFittedText(
-        "No HTML. No browser. No localhost. This shell is the permanent desktop foundation for the arranger, MIDI, style, VST3 and performance engines.",
-        status.toNearestInt().reduced(52,18).withTrimmedTop(38),
-        juce::Justification::topLeft, 2);
-
-    area.removeFromTop(24);
-
-    auto left = area.removeFromLeft((int)(area.getWidth()*0.62f));
-    area.removeFromLeft(20);
-
-    g.setColour(panel);
-    g.fillRoundedRectangle(left.toFloat(), 14.0f);
-    g.fillRoundedRectangle(area.toFloat(), 14.0f);
-
-    g.setColour(text);
-    g.setFont(juce::Font(juce::FontOptions(21.0f, juce::Font::bold)));
-    g.drawText("ARRANGER CORE", left.reduced(22,20).removeFromTop(32), juce::Justification::centredLeft);
-    g.drawText("NATIVE S1", area.reduced(22,20).removeFromTop(32), juce::Justification::centredLeft);
-
-    g.setColour(muted);
-    g.setFont(15.0f);
-    g.drawFittedText("M4 timing/state engine remains the proven recovery baseline. Native UI integration now proceeds module-by-module instead of patching the old prototype.",
-                     left.reduced(22,20).withTrimmedTop(44), juce::Justification::topLeft, 5);
-    g.drawFittedText("This build proves the final Windows application shell and packaged audio runtime. Only working controls are exposed.",
-                     area.reduced(22,20).withTrimmedTop(44), juce::Justification::topLeft, 5);
+        "The GUI stays responsive while the native timer drives 16th-note accompaniment. "
+        "Main and fill requests quantize to the next bar. Sync Start waits for a chord selection. "
+        "Ending plays one bar and stops automatically.",
+        area.reduced(20, 16).withTrimmedTop(38),
+        juce::Justification::topLeft, 4);
 }
 
 void MainComponent::resized()
 {
-    auto top = getLocalBounds().removeFromTop(90).reduced(28,12);
-    auto left = top.removeFromLeft(650);
+    auto bounds = getLocalBounds();
 
-    titleLabel.setBounds(left.removeFromTop(44));
-    statusLabel.setBounds(left);
+    auto header = bounds.removeFromTop(92).reduced(28, 12);
+    auto leftHeader = header.removeFromLeft(720);
 
-    panicButton.setBounds(top.removeFromRight(220).reduced(5,10));
-    audioTestButton.setBounds(top.removeFromRight(150).reduced(5,10));
+    titleLabel.setBounds(leftHeader.removeFromTop(43));
+    engineStatusLabel.setBounds(leftHeader);
+
+    panicButton.setBounds(header.removeFromRight(120).reduced(4, 10));
+
+    auto area = bounds.reduced(28);
+
+    auto display = area.removeFromTop(155).reduced(18);
+    const int col = display.getWidth() / 4;
+
+    auto sectionBox = display.removeFromLeft(col);
+    auto chordBox = display.removeFromLeft(col);
+    auto barBox = display.removeFromLeft(col);
+    auto tempoBox = display;
+
+    sectionBox.removeFromTop(26);
+    chordBox.removeFromTop(26);
+    barBox.removeFromTop(26);
+    tempoBox.removeFromTop(26);
+
+    sectionValue.setBounds(sectionBox);
+    chordValue.setBounds(chordBox);
+    barBeatValue.setBounds(barBox);
+    tempoValue.setBounds(tempoBox);
+
+    area.removeFromTop(22);
+    auto performance = area.removeFromTop(220).reduced(20, 52);
+
+    auto firstRow = performance.removeFromTop(58);
+    auto buttonW = (firstRow.getWidth() - 36) / 4;
+
+    syncStartButton.setBounds(firstRow.removeFromLeft(buttonW).reduced(3));
+    firstRow.removeFromLeft(12);
+    startButton.setBounds(firstRow.removeFromLeft(buttonW).reduced(3));
+    firstRow.removeFromLeft(12);
+    stopButton.setBounds(firstRow.removeFromLeft(buttonW).reduced(3));
+    firstRow.removeFromLeft(12);
+    endingButton.setBounds(firstRow.reduced(3));
+
+    performance.removeFromTop(12);
+    auto secondRow = performance.removeFromTop(58);
+    buttonW = (secondRow.getWidth() - 48) / 5;
+
+    mainAButton.setBounds(secondRow.removeFromLeft(buttonW).reduced(3));
+    secondRow.removeFromLeft(12);
+    mainBButton.setBounds(secondRow.removeFromLeft(buttonW).reduced(3));
+    secondRow.removeFromLeft(12);
+    mainCButton.setBounds(secondRow.removeFromLeft(buttonW).reduced(3));
+    secondRow.removeFromLeft(12);
+    fillBButton.setBounds(secondRow.removeFromLeft(buttonW).reduced(3));
+    secondRow.removeFromLeft(12);
+    fillCButton.setBounds(secondRow.reduced(3));
+
+    area.removeFromTop(22);
+    auto controls = area.reduced(20, 70);
+
+    auto chordControls = controls.removeFromLeft(310);
+    chordRootBox.setBounds(chordControls.removeFromLeft(120).reduced(3, 7));
+    minorToggle.setBounds(chordControls.removeFromLeft(95).reduced(8, 7));
+
+    controls.removeFromLeft(30);
+    tempoSlider.setBounds(controls.removeFromLeft(480).reduced(3, 7));
 }

@@ -10,15 +10,18 @@ endif()
 
 add_subdirectory(JUCE)
 
+# Proven M4 console target retained as regression baseline.
 add_executable(ArrangerCoreProof
     App/ArrangerCoreProof.cpp
     Engine/SoundFontEngine.cpp
     Engine/ArrangerEngine.cpp
     Engine/TimingEngine.cpp
 )
+
 target_include_directories(ArrangerCoreProof PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(ArrangerCoreProof PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
 
+# Permanent native Windows application.
 juce_add_gui_app(LiveStageAI
     PRODUCT_NAME "LiveStage AI"
     COMPANY_NAME "LiveStage AI"
@@ -31,11 +34,11 @@ target_sources(LiveStageAI PRIVATE
     Desktop/MainComponent.h
     Engine/SoundFontEngine.cpp
     Engine/SoundFontEngine.h
-    Engine/RealtimeArrangerEngine.cpp
-    Engine/RealtimeArrangerEngine.h
 )
 
-target_include_directories(LiveStageAI PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(LiveStageAI PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 target_compile_definitions(LiveStageAI PRIVATE
     JUCE_WEB_BROWSER=0
@@ -53,8 +56,10 @@ target_link_libraries(LiveStageAI PRIVATE
     juce::juce_core
 )
 
+# Required because Desktop sources intentionally use #include <JuceHeader.h>.
 juce_generate_juce_header(LiveStageAI)
 
+# Package runtime dependencies automatically beside the EXE.
 add_custom_command(TARGET LiveStageAI POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/RuntimeDLLs"
