@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/SoundFontEngine.h"
+#include "Engine/TimingEngine.h"
 
 enum class ArrangerState
 {
@@ -15,6 +16,14 @@ enum class ArrangerState
     EndingA
 };
 
+enum class PendingSection
+{
+    None,
+    FillB,
+    FillC,
+    EndingA
+};
+
 class ArrangerEngine
 {
 public:
@@ -22,28 +31,39 @@ public:
 
     void syncStart();
     void chordDetected(int root, bool minor);
-    void fillB();
-    void fillC();
-    void endingA();
+    void requestFillB();
+    void requestFillC();
+    void requestEndingA();
     void stop();
 
-    void playM3ProofDemo();
+    void playM4ProofDemo();
 
 private:
     void sleepms(int ms);
     void setState(ArrangerState next);
     const char* stateName() const;
+    const char* pendingName() const;
 
     void chordOn(int ch, int root, bool minor, int vel);
     void chordOff(int ch, int root, bool minor);
 
+    void printTransport() const;
+    void advanceTransportAtSixteenth(int sixteenthIndex);
+
+    void requestSection(PendingSection section);
+    bool handlePendingAtBarBoundary();
+
     void playIntroA();
-    void playMainBar(ArrangerState mainState);
+    bool playMainBar(ArrangerState mainState);
     void playFillThenMain(ArrangerState fillState, ArrangerState targetMain);
     void playEndingA();
 
+private:
     SoundFontEngine& sf;
+    TimingEngine timing;
+
     ArrangerState state = ArrangerState::Stopped;
+    PendingSection pending = PendingSection::None;
 
     int currentRoot = 60;
     bool currentMinor = false;

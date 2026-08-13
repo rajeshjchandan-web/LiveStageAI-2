@@ -4,7 +4,7 @@
 
 int main()
 {
-    std::cout << "LiveStage AI 2.0 Engine M3 - Arranger State Machine\n";
+    std::cout << "LiveStage AI 2.0 Engine M4 - Musical Timing Engine\n";
 
     SoundFontEngine soundFont;
     if (!soundFont.initialize())
@@ -15,11 +15,11 @@ int main()
     }
 
     ArrangerEngine arranger(soundFont);
-    arranger.playM3ProofDemo();
+    arranger.playM4ProofDemo();
 
     soundFont.shutdown();
 
-    std::cout << "M3 ARRANGER STATE MACHINE COMPLETE\n";
+    std::cout << "M4 MUSICAL TIMING ENGINE COMPLETE\n";
     system("pause");
     return 0;
 }
