@@ -19,18 +19,10 @@ add_executable(ArrangerCoreProof
 target_include_directories(ArrangerCoreProof PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(ArrangerCoreProof PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
 
-set(LIVESTAGE_ICON_ARGS)
-if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Assets/LiveStageAI_Icon.png")
-    list(APPEND LIVESTAGE_ICON_ARGS
-        ICON_BIG "${CMAKE_CURRENT_SOURCE_DIR}/Assets/LiveStageAI_Icon.png"
-        ICON_SMALL "${CMAKE_CURRENT_SOURCE_DIR}/Assets/LiveStageAI_Icon.png")
-endif()
-
 juce_add_gui_app(LiveStageAI
     PRODUCT_NAME "LiveStage AI"
     COMPANY_NAME "LiveStage AI"
     BUNDLE_ID "com.livestageai.app"
-    ${LIVESTAGE_ICON_ARGS}
 )
 
 target_sources(LiveStageAI PRIVATE
@@ -54,7 +46,6 @@ target_compile_definitions(LiveStageAI PRIVATE
 )
 
 target_link_libraries(LiveStageAI PRIVATE
-    juce::juce_audio_basics
     juce::juce_gui_extra
     juce::juce_gui_basics
     juce::juce_graphics

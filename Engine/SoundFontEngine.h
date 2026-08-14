@@ -10,6 +10,9 @@ public:
     void programChange(int channel, int program);
     void noteOn(int channel, int note, int velocity);
     void noteOff(int channel, int note);
+    void controlChange(int channel, int controller, int value);
+    void setChannelVolume(int channel, int value);
+    void setChannelPan(int channel, int value);
     void allNotesOff();
 
 private:
